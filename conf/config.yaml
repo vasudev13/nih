@@ -1,0 +1,56 @@
+name: null
+seed: 42
+num_classes: 14
+
+trainer:
+  accelerator: None
+  gpus: 1
+  max_epochs: 10
+  precision: 16
+
+model:
+  _target_: model.ChestXrayModel
+  architecture: "resnet50"
+  initialization: "random"
+  checkpoint: ""
+  num_classes: ${num_classes}
+  loss_fn: "BCELoss"
+  optimizer_fn: "Adam"
+  log_freq: 1000
+  learning_rate: 0.001
+  freeze_enoder: False
+
+data:
+  _target_: data.ChestXrayDataModule
+  path: "/gpfs/scratch/va2134/nih/"
+  batch_size: 64
+  num_workers: 40
+  train_fraction: 1.0
+
+train_transforms:
+  _target_: transformations.NIHChestXrayTransforms
+  image_size: 256
+
+val_transforms:
+  _target_: transformations.NIHChestXrayTransforms
+  image_size: 256
+
+wandb:
+  _target_: pytorch_lightning.loggers.WandbLogger
+  name: "natural-language-supervision-for-medical-imaging"
+  project: "natural-language-supervision-for-medical-imaging"
+  group: "non-ssl-baselines"
+
+model_save_callback:
+  _target_: pytorch_lightning.callbacks.ModelCheckpoint
+  monitor: "val_loss"
+  dirpath: /gpfs/scratch/va2134/nih//models
+  model_name: "resnet50"
+  file_name: "resnet50-{epoch:02d}-{val_loss:.2f}"
+  save_top_k: 1
+  mode: "min"
+
+metrics:
+  _target_: torchmetrics.AUROC
+  average: "macro"
+  num_classes: ${num_classes}
