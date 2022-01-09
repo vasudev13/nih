@@ -25,7 +25,8 @@ def cli_hydra(cfg: DictConfig):
     train_transforms = instantiate(cfg.train_transforms)
     val_transforms = instantiate(cfg.val_transforms)
 
-    data_module = instantiate(train_transforms = train_transforms, val_transforms = val_transforms, **cfg.data)
+    data_module = instantiate(
+        train_transforms=train_transforms, val_transforms=val_transforms, **cfg.data)
     model = instantiate(cfg.model)
     model_save_checkpoint = instantiate(cfg.model_save_callback)
     trainer = pl.Trainer(
